@@ -1,6 +1,6 @@
 # Fixes in the maintained fork
 
-This document describes the main compatibility and correctness fixes maintained in `HAOZI-qwq/app-info-parser` compared with upstream `chenquincy/app-info-parser@1.1.6`.
+This document describes the main compatibility and correctness fixes maintained in `HAOZI-qwq/app-info-parser-next` compared with upstream `chenquincy/app-info-parser@1.1.6`.
 
 ## Android `resources.arsc`
 
@@ -110,4 +110,4 @@ Original project:
 
 Maintained fork:
 
-- https://github.com/HAOZI-qwq/app-info-parser
+- https://github.com/HAOZI-qwq/app-info-parser-next
