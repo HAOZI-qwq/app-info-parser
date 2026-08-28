@@ -1,5 +1,5 @@
 {
-  "name": "app-info-parser",
+  "name": "app-info-parser-next",
   "version": "1.1.7-fixed.1",
   "description": "Maintained fork of app-info-parser with modern APK/IPA parsing fixes.",
   "main": "./lib/index.js",
@@ -36,12 +36,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/HAOZI-qwq/app-info-parser.git"
+    "url": "git+https://github.com/HAOZI-qwq/app-info-parser-next.git"
   },
   "bugs": {
-    "url": "https://github.com/HAOZI-qwq/app-info-parser/issues"
+    "url": "https://github.com/HAOZI-qwq/app-info-parser-next/issues"
   },
-  "homepage": "https://github.com/HAOZI-qwq/app-info-parser#readme",
+  "homepage": "https://github.com/HAOZI-qwq/app-info-parser-next#readme",
   "license": "MIT",
   "dependencies": {
     "bplist-parser": "^0.2.0",
