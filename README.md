@@ -1,16 +1,20 @@
 # app-info-parser-next
 
-> A maintained fork of [chenquincy/app-info-parser](https://github.com/chenquincy/app-info-parser), focused on modern APK/IPA parsing compatibility and bug fixes.
+> A maintained fork of [chenquincy/app-info-parser](https://github.com/chenquincy/app-info-parser), focused on modern APK/IPA parsing compatibility and bug fixes
 
-一个用于解析 `.apk` / `.ipa` 应用信息的 JavaScript 解析器，支持 Node.js 和浏览器环境。解析结果主要来自 Android `AndroidManifest.xml`、`resources.arsc` 以及 iOS `Info.plist` / `embedded.mobileprovision`。
+一个用于解析 `.apk` / `.ipa` 应用信息的 JavaScript 解析器，支持 Node.js 和浏览器环境
+
+解析结果主要来自 Android `AndroidManifest.xml`、`resources.arsc` 以及 iOS `Info.plist` / `embedded.mobileprovision`
 
 ## About this fork / 关于本维护版
 
-本项目基于原项目 [chenquincy/app-info-parser](https://github.com/chenquincy/app-info-parser) 维护。
+本项目基于原项目 [chenquincy/app-info-parser](https://github.com/chenquincy/app-info-parser) 维护
 
-原项目由 Quincy Chen（陈秋鑫）开发，并以 MIT License 开源。上游项目已声明不再继续功能维护，因此本 fork 在尽量保持原 API 和使用方式兼容的前提下，继续修复现代 Android APK 资源格式、图标解析、Unicode 字符串及浏览器资源释放等问题。
+原项目由 Quincy Chen（陈秋鑫）开发，并以 MIT License 开源
 
-> 本 fork 不代表原作者，也不会修改或移除原项目的版权与 MIT License 声明。
+上游项目已声明不再继续功能维护，因此本 fork 在尽量保持原 API 和使用方式兼容的前提下，继续修复现代 Android APK 资源格式、图标解析、Unicode 字符串及浏览器资源释放等问题
+
+> 本 fork 不代表原作者，也不会修改或移除原项目的版权与 MIT License 声明
 
 ## Main improvements / 主要改进
 
@@ -33,7 +37,7 @@
 - 修复 IPA 大图标转换时可能出现的 `Maximum call stack size exceeded`
 - 改进 Manifest / resources 解析异常信息，保留原始错误原因
 
-详细说明见 [FIXES.md](./FIXES.md)。
+详细说明见 [FIXES.md](./FIXES.md)
 
 ## Support
 
@@ -45,7 +49,7 @@
 
 ### 安装此维护版
 
-当前 `npm install app-info-parser` 指向的是上游 npm 包，并不是本 fork。
+当前 `npm install app-info-parser` 指向的是上游 npm 包，并不是本 fork
 
 如果需要直接使用本仓库版本，可以从 GitHub 安装：
 
@@ -83,7 +87,7 @@ parser.parse().then(result => {
 })
 ```
 
-如果通过 GitHub 安装本 fork，包名为 `app-info-parser-next`。
+如果通过 GitHub 安装本 fork，包名为 `app-info-parser-next`
 
 ### Browser
 
@@ -122,7 +126,7 @@ function fileSelect () {
 npx app-info-parser -f <file-path> -o <output-path>
 ```
 
-注意：如果直接执行 `npx app-info-parser`，默认仍会获取 npm 上游版本，除非未来本维护版以新的 npm 包名发布。
+注意：如果直接执行 `npx app-info-parser`，默认仍会获取 npm 上游版本，除非未来本维护版以新的 npm 包名发布
 
 ## API
 
@@ -135,7 +139,7 @@ npx app-info-parser -f <file-path> -o <output-path>
 
 #### `parse()`
 
-返回 `Promise<Object>`，解析成功后得到 APK/IPA 信息。
+返回 `Promise<Object>`，解析成功后得到 APK/IPA 信息
 
 ## Build
 
@@ -166,31 +170,31 @@ dist/app-info-parser.min.js
 安装依赖 → 回归测试 → 编译 dist → 校验 → 自动提交新的 dist
 ```
 
-自动编译只更新构建产物，**不会自动创建 GitHub Release**。
+自动编译只更新构建产物，**不会自动创建 GitHub Release**
 
 ## Release / 发布版本
 
-本仓库提供单独的 `Release` GitHub Actions 工作流。它采用手动触发，避免普通代码修改被误发布为正式版本。
+本仓库提供单独的 `Release` GitHub Actions 工作流，采用手动触发，避免普通代码修改被误发布为正式版本
 
 发布时只需要：
 
-1. 确认 `package.json` 中的 `version` 是你要发布的版本。
-2. 打开 GitHub 仓库的 **Actions** 页面。
-3. 左侧选择 **Release**。
-4. 点击 **Run workflow**。
-5. 工作流会自动运行测试和编译。
-6. 自动创建对应的 Git Tag，例如 `v1.1.7-fixed.1`。
-7. 自动创建 GitHub Release。
-8. 自动把以下文件作为 Release 附件上传：
+1. 确认 `package.json` 中的 `version` 是你要发布的版本
+2. 打开 GitHub 仓库的 **Actions** 页面
+3. 左侧选择 **Release**
+4. 点击 **Run workflow**
+5. 工作流会自动运行测试和编译
+6. 自动创建对应的 Git Tag，例如 `v1.1.7-fixed.1`
+7. 自动创建 GitHub Release
+8. 自动把以下文件作为 Release 附件上传
 
 ```text
 dist/app-info-parser.js
 dist/app-info-parser.min.js
 ```
 
-GitHub 还会自动为每个 Release 提供源码的 `.zip` 和 `.tar.gz` 下载包。
+GitHub 还会自动为每个 Release 提供源码的 `.zip` 和 `.tar.gz` 下载包
 
-如果同版本的 Release 已经存在，再次运行工作流只会重新上传最新的 `dist` 附件，不会重复创建版本。
+如果同版本的 Release 已经存在，再次运行工作流只会重新上传最新的 `dist` 附件，不会重复创建版本
 
 ## Versioning
 
@@ -200,18 +204,18 @@ GitHub 还会自动为每个 Release 提供源码的 `.zip` 和 `.tar.gz` 下载
 1.1.7-fixed.1
 ```
 
-后续版本和具体修复记录见 [CHANGELOG.md](./CHANGELOG.md)。
+后续版本和具体修复记录见 [CHANGELOG.md](./CHANGELOG.md)
 
 ## Upstream / 原项目
 
 - Original repository: [chenquincy/app-info-parser](https://github.com/chenquincy/app-info-parser)
 - Maintained fork: [HAOZI-qwq/app-info-parser-next](https://github.com/HAOZI-qwq/app-info-parser-next)
 
-感谢原作者及原项目贡献者提供的基础实现。
+感谢原作者及原项目贡献者提供的基础实现
 
 ## License
 
-MIT License。
+MIT License
 
 本仓库保留原项目的版权和许可证文件：
 
@@ -219,4 +223,4 @@ MIT License。
 Copyright (c) 2018 陈秋鑫
 ```
 
-详见 [LICENSE](./LICENSE)。
+详见 [LICENSE](./LICENSE)
