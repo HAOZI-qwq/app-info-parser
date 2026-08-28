@@ -60,13 +60,13 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             echo "Release $TAG already exists; replacing distribution assets."
             gh release upload "$TAG" \
-              dist/app-info-parser.js \
-              dist/app-info-parser.min.js \
+              dist/app-info-parser-next.js \
+              dist/app-info-parser-next.min.js \
               --clobber
           else
             gh release create "$TAG" \
-              dist/app-info-parser.js \
-              dist/app-info-parser.min.js \
+              dist/app-info-parser-next.js \
+              dist/app-info-parser-next.min.js \
               --title "$TAG" \
               --generate-notes
           fi
