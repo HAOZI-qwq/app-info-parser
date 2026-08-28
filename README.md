@@ -1,44 +1,79 @@
-## app-info-parser
+# app-info-parser
 
-[app-info-parser](https://github.com/chenquincy/app-info-parser) is a parser for parsing `.ipa` or `.apk` files. It will return the information with json from `AndroidManifest.xml` or `Info.plist`.
+> A maintained fork of [chenquincy/app-info-parser](https://github.com/chenquincy/app-info-parser), focused on modern APK/IPA parsing compatibility and bug fixes.
 
-![](https://img.shields.io/npm/v/app-info-parser.svg) ![](https://img.shields.io/npm/dt/app-info-parser.svg) ![](https://img.shields.io/badge/language-javascript-yellow.svg)
+一个用于解析 `.apk` / `.ipa` 应用信息的 JavaScript 解析器，支持 Node.js 和浏览器环境。解析结果主要来自 Android `AndroidManifest.xml`、`resources.arsc` 以及 iOS `Info.plist` / `embedded.mobileprovision`。
+
+## About this fork / 关于本维护版
+
+本项目基于原项目 [chenquincy/app-info-parser](https://github.com/chenquincy/app-info-parser) 维护。
+
+原项目由 Quincy Chen（陈秋鑫）开发，并以 MIT License 开源。上游项目已声明不再继续功能维护，因此本 fork 在尽量保持原 API 和使用方式兼容的前提下，继续修复现代 Android APK 资源格式、图标解析、Unicode 字符串及浏览器资源释放等问题。
+
+> 本 fork 不代表原作者，也不会修改或移除原项目的版权与 MIT License 声明。
+
+## Main improvements / 主要改进
+
+相较上游 `1.1.6`，本维护版主要修复和改进：
+
+- 支持现代 Android `resources.arsc` 资源表结构
+- 支持 `FLAG_SPARSE`
+- 支持 `FLAG_OFFSET16`
+- 支持 `FLAG_COMPACT`
+- 按真实 resource entry offset 定位资源项
+- 修复资源引用解析顺序问题
+- 保留 Unicode、空格及特殊字符形式的 `versionName`
+- 修复 UTF-16 String Pool 解码
+- 修复 String Pool 索引 `0` 被误判为空的问题
+- 修复 Android `dimension` / `fraction` / `float` 类型解析
+- 改进 APK 图标选择逻辑
+- 避免将 Adaptive Icon XML 错误标记为 PNG
+- 支持 PNG / WebP / JPEG 图标 MIME 识别
+- 修复浏览器 ZIP Worker 未释放导致的资源泄漏
+- 修复 IPA 大图标转换时可能出现的 `Maximum call stack size exceeded`
+- 改进 Manifest / resources 解析异常信息，保留原始错误原因
+
+详细说明见 [FIXES.md](./FIXES.md)。
 
 ## Support
 
-* Node ✅
-
-* Browser ✅（except IE）
-
-* npx ✅
+- Node.js ✅
+- Browser ✅（IE 除外）
+- NPX ✅
 
 ## Installation
 
-``` shell
+### 安装此维护版
+
+当前 `npm install app-info-parser` 指向的是上游 npm 包，并不是本 fork。
+
+如果需要直接使用本仓库版本，可以从 GitHub 安装：
+
+```shell
+npm install github:HAOZI-qwq/app-info-parser
+```
+
+或者：
+
+```shell
+yarn add github:HAOZI-qwq/app-info-parser
+```
+
+### 上游 npm 包
+
+如果你明确需要原版 `1.1.6`：
+
+```shell
 npm install app-info-parser
-# or yarn
-yarn add app-info-parser
 ```
 
 ## Getting started
 
-### NPX Use
+### Node.js
 
-You can use app-info-parser by npx, if you don't want to install it. Run this command in your terminal:
-
-``` shell
-npx app-info-parser -f <file-path> -o <output-path>
-```
-
-| argument | type   | description                                                  |
-| -------- | ------ | ------------------------------------------------------------ |
-| -f       | string | The path of file that you want to parse.                     |
-| -o       | string | The output path that you want to save the parse result. Default is "./result.json" |
-
-### NPM Use
-
-``` javascript
+```javascript
 const AppInfoParser = require('app-info-parser')
+
 const parser = new AppInfoParser('../packages/test.apk') // or xxx.ipa
 parser.parse().then(result => {
   console.log('app info ----> ', result)
@@ -48,120 +83,106 @@ parser.parse().then(result => {
 })
 ```
 
-### CDN Use
+如果你通过 GitHub 安装本 fork，`require('app-info-parser')` 的使用方式保持不变。
 
-``` html
-<input type="file" name="file" id="file" onchange="fileSelect()">
-<script src="//unpkg.com/browse/app-info-parser/dist/app-info-parser.min.js"></script>
+### Browser
+
+可以直接使用仓库中构建后的：
+
+```text
+dist/app-info-parser.js
+dist/app-info-parser.min.js
+```
+
+示例：
+
+```html
+<input type="file" id="file" onchange="fileSelect()">
+<script src="./dist/app-info-parser.min.js"></script>
 <script>
 function fileSelect () {
   const files = document.getElementById('file').files
   const parser = new window.AppInfoParser(files[0])
+
   parser.parse().then(result => {
     console.log('app info ----> ', result)
-    console.log('icon base64 ----> ', result.icon)
+    console.log('icon ----> ', result.icon)
   }).catch(err => {
-    console.log('err ----> ', err)
+    console.error(err)
   })
 }
 </script>
 ```
 
-### Demand loading
+### NPX
 
-> You can use demand loading, when you only need one parser.
+原项目提供以下命令：
 
-#### ApkParser
-
-``` javascript
-const ApkParser = require('app-info-parser/src/apk')
-const parser = new ApkParser('../packages/test.apk')
-parser.parse().then(result => {
-  console.log('app info ----> ', result)
-  console.log('icon base64 ----> ', result.icon)
-}).catch(err => {
-  console.log('err ----> ', err)
-})
+```shell
+npx app-info-parser -f <file-path> -o <output-path>
 ```
 
-#### IpaParser
+注意：如果直接执行 `npx app-info-parser`，默认仍会获取 npm 上游版本，除非未来本维护版以新的 npm 包名发布。
 
-``` javascript
-const IpaParser = require('app-info-parser/src/ipa')
-const parser = new IpaParser('../packages/test.ipa')
-parser.parse().then(result => {
-  console.log('app info ----> ', result)
-  console.log('icon base64 ----> ', result.icon)
-}).catch(err => {
-  console.log('err ----> ', err)
-})
+## API
+
+### `AppInfoParser | ApkParser | IpaParser`
+
+#### `constructor(file)`
+
+- Browser: `Blob` / `File`
+- Node.js: 文件路径
+
+#### `parse()`
+
+返回 `Promise<Object>`，解析成功后得到 APK/IPA 信息。
+
+## Build
+
+安装依赖：
+
+```shell
+npm install
 ```
 
-## API Referrer
+构建浏览器版本：
 
-### AppInfoParser | ApkParser | IpaParser
+```shell
+npm run dist
+```
 
-* `constructor(file)`
-  * `file`   Blob or File in browser, Path in Node
-* `parse: () => Promise<Object>`   A function return a promise, which resolving the parse result
+输出：
 
-## Buy Me A Coffee
+```text
+dist/app-info-parser.js
+dist/app-info-parser.min.js
+```
 
-Open source is not easy, you can  buy me a coffee. *Note your name or github id so I can add you to the donation list.*
+## Versioning
 
-<table style="margin-left: auto; margin-right: auto;">
-	<tr>
-		<td style="padding: 50px;text-align:center;">
-      <p style="font-size:25px;">Wechat Pay</p>
-			<img src="https://user-images.githubusercontent.com/10976378/61703600-7e66f900-ad74-11e9-9eab-9ec57d1cf7e0.png">
-		</td>
-		<td style="padding: 50px;text-align:center;">
-      <p style="font-size:25px;">Ali Pay</p>
-			<img src="https://user-images.githubusercontent.com/10976378/61703625-9179c900-ad74-11e9-936c-9cf5b7d59aa7.png">
-		</td>
-	</tr>
-</table>
+本 fork 从上游 `1.1.6` 继续维护，首个维护版使用：
 
-## Donation List
+```text
+1.1.7-fixed.1
+```
 
-❤️ Thanks these guys for donations. Contact me with <a href="mailto:mail@quincychen.cn" target="_blank" rel="noopener noreferrer nofollow" title="EMail">email</a>, if you had donated but not on the list.
+后续版本和具体修复记录见 [CHANGELOG.md](./CHANGELOG.md)。
 
-| Donors                                 | Amount | Time             |
-| -------------------------------------- | ------ | ---------------- |
-| L*nker                                 | ￥10   | 2025-12-16 14:32 |
-| *明                                    | ￥100  | 2023-03-29 10:16 |
-| *明                                    | ￥100  | 2021-06-17 17:29 |
-| =*=                                    | ￥6.66 | 2021-05-24 15:12 |
-| *学                                    | ￥6.66 | 2021-01-08 15:32 |
-| y*n                                    | ￥6.66 | 2020-08-26 12:10 |
-| *明                                    | ￥100  | 2020-08-25 11:35 |
-| *肖                                    | ￥6.66 | 2020-07-31 19:54 |
-| O*s                                    | ￥1    | 2020-05-26 16:01 |
-| **豪                                   | ￥6.66 | 2020-03-05 20:14 |
-| *大                                    | ￥6.66 | 2020-02-25 16:55 |
-| *风                                    | ￥1    | 2020-01-03 15:36 |
-| [黄灰红](https://github.com/LoranWong) | ￥1    | 2019-12-10 17:53 |
-| zona.zhou                              | ￥1    | 2019-10-20 23:18 |
-| *。                                    | ￥66   | 2019-10-20 22:45 |
+## Upstream / 原项目
 
-##  License
+- Original repository: [chenquincy/app-info-parser](https://github.com/chenquincy/app-info-parser)
+- Maintained fork: [HAOZI-qwq/app-info-parser](https://github.com/HAOZI-qwq/app-info-parser)
 
-MIT
+感谢原作者及原项目贡献者提供的基础实现。
 
-## Resources
+## License
 
-* [Changelog](https://github.com/chenquincy/app-info-parser/blob/master/CHANGELOG.md)
+MIT License。
 
-## FAQ
+本仓库保留原项目的版权和许可证文件：
 
-### Build/Parse error with vite？
+```text
+Copyright (c) 2018 陈秋鑫
+```
 
-See this [issue](https://github.com/vitejs/vite/issues/2985) of vite, vite is not going support node global builtins and node specific api's on the client. Some of app-info-parser's deps didn't support browser env, most of them without maintain, so it can't be resolved.
-
-Just use app-info-parser by CDN using(import by script element), don't use it with module import in vite.
-
-## Some Declaration
-
-Due to the project's low input-output ratio and limited personal capacity, there will be no further maintenance of this project going forward.
-
-> 由于项目投入产出较低，且个人精力有限，后续不会再做功能维护
+详见 [LICENSE](./LICENSE)。
