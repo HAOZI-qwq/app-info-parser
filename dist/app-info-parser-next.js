@@ -26,6 +26,7 @@ var _require = _dereq_('./utils'),
   mapInfoResource = _require.mapInfoResource,
   findApkIconPaths = _require.findApkIconPaths,
   detectImageMimeType = _require.detectImageMimeType,
+  getImageDimensions = _require.getImageDimensions,
   getBase64FromBuffer = _require.getBase64FromBuffer;
 var ManifestName = /^androidmanifest\.xml$/;
 var ResourceName = /^resources\.arsc$/;
@@ -33,6 +34,23 @@ var ManifestXmlParser = _dereq_('./xml-parser/manifest');
 var ResourceFinder = _dereq_('./resource-finder');
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+function largerIcon(current, candidate) {
+  if (!candidate) return current;
+  if (!current) return candidate;
+  var a = current.dimensions || {
+    width: 0,
+    height: 0
+  };
+  var b = candidate.dimensions || {
+    width: 0,
+    height: 0
+  };
+  var areaA = a.width * a.height;
+  var areaB = b.width * b.height;
+  if (areaB > areaA) return candidate;
+  if (areaB < areaA) return current;
+  return Math.max(b.width, b.height) > Math.max(a.width, a.height) ? candidate : current;
 }
 var ApkParser = /*#__PURE__*/function (_Zip) {
   /**
@@ -99,10 +117,11 @@ var ApkParser = /*#__PURE__*/function (_Zip) {
     key: "_loadIcon",
     value: function () {
       var _loadIcon2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2(iconPaths) {
-        var _iterator, _step, iconPath, exact, iconBuffer, mimeType, legacy, _t, _t2;
+        var best, _iterator, _step, iconPath, exact, buffer, mimeType, _t, _t2, _t3, _t4;
         return _regenerator().w(function (_context2) {
           while (1) switch (_context2.p = _context2.n) {
             case 0:
+              best = null;
               _iterator = _createForOfIteratorHelper(iconPaths);
               _context2.p = 1;
               _iterator.s();
@@ -117,17 +136,19 @@ var ApkParser = /*#__PURE__*/function (_Zip) {
               _context2.n = 4;
               return this.getEntry(exact);
             case 4:
-              iconBuffer = _context2.v;
-              mimeType = detectImageMimeType(iconBuffer);
-              if (!(iconBuffer && mimeType)) {
+              buffer = _context2.v;
+              mimeType = detectImageMimeType(buffer);
+              if (!(buffer && mimeType)) {
                 _context2.n = 5;
                 break;
               }
-              return _context2.a(2, {
-                buffer: iconBuffer,
+              best = largerIcon(best, {
+                buffer: buffer,
                 mimeType: mimeType,
-                path: iconPath
+                path: iconPath,
+                dimensions: getImageDimensions(buffer, mimeType)
               });
+              return _context2.a(3, 9);
             case 5:
               _context2.n = 7;
               break;
@@ -139,15 +160,12 @@ var ApkParser = /*#__PURE__*/function (_Zip) {
                 _context2.n = 9;
                 break;
               }
+              _t2 = largerIcon;
+              _t3 = best;
               _context2.n = 8;
               return this._findLegacyRasterIcon(iconPath);
             case 8:
-              legacy = _context2.v;
-              if (!legacy) {
-                _context2.n = 9;
-                break;
-              }
-              return _context2.a(2, legacy);
+              best = _t2(_t3, _context2.v);
             case 9:
               _context2.n = 2;
               break;
@@ -156,14 +174,14 @@ var ApkParser = /*#__PURE__*/function (_Zip) {
               break;
             case 11:
               _context2.p = 11;
-              _t2 = _context2.v;
-              _iterator.e(_t2);
+              _t4 = _context2.v;
+              _iterator.e(_t4);
             case 12:
               _context2.p = 12;
               _iterator.f();
               return _context2.f(12);
             case 13:
-              return _context2.a(2, null);
+              return _context2.a(2, best);
           }
         }, _callee2, this, [[3, 6], [1, 11, 12, 13]]);
       }));
@@ -176,7 +194,7 @@ var ApkParser = /*#__PURE__*/function (_Zip) {
     key: "_findLegacyRasterIcon",
     value: function () {
       var _findLegacyRasterIcon2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee3(xmlPath) {
-        var fileName, stem, densityOrder, _i, _densityOrder, density, regex, buffer, mimeType, anyDensity, _buffer, _mimeType, _t3, _t4;
+        var fileName, stem, densityOrder, _i, _densityOrder, density, regex, buffer, mimeType, anyDensity, _buffer, _mimeType, _t5, _t6;
         return _regenerator().w(function (_context3) {
           while (1) switch (_context3.p = _context3.n) {
             case 0:
@@ -210,21 +228,20 @@ var ApkParser = /*#__PURE__*/function (_Zip) {
               return _context3.a(2, {
                 buffer: buffer,
                 mimeType: mimeType,
-                path: "legacy:".concat(stem, ":").concat(density)
+                path: "legacy:".concat(stem, ":").concat(density),
+                dimensions: getImageDimensions(buffer, mimeType)
               });
             case 5:
               _context3.n = 7;
               break;
             case 6:
               _context3.p = 6;
-              _t3 = _context3.v;
+              _t5 = _context3.v;
             case 7:
               _i++;
               _context3.n = 2;
               break;
             case 8:
-              // Last chance: a raster resource with the same name in any drawable/mipmap
-              // configuration. This covers uncommon qualifier combinations.
               anyDensity = new RegExp('^res/(?:mipmap|drawable)(?:-[^/]*)?/' + escapeRegExp(stem) + '\\.(?:png|webp|jpe?g|gif)$', 'i');
               _context3.p = 9;
               _context3.n = 10;
@@ -239,14 +256,15 @@ var ApkParser = /*#__PURE__*/function (_Zip) {
               return _context3.a(2, {
                 buffer: _buffer,
                 mimeType: _mimeType,
-                path: "legacy:".concat(stem)
+                path: "legacy:".concat(stem),
+                dimensions: getImageDimensions(_buffer, _mimeType)
               });
             case 11:
               _context3.n = 13;
               break;
             case 12:
               _context3.p = 12;
-              _t4 = _context3.v;
+              _t6 = _context3.v;
             case 13:
               return _context3.a(2, null);
           }
@@ -265,9 +283,6 @@ var ApkParser = /*#__PURE__*/function (_Zip) {
     key: "_parseManifest",
     value: function _parseManifest(buffer) {
       try {
-        // The old code passed an `ignore` option that BinaryXmlParser never
-        // implemented. Removing the dead option makes behavior explicit and keeps
-        // launcher/activity parsing intact.
         var parser = new ManifestXmlParser(buffer);
         return parser.parse();
       } catch (e) {
