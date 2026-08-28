@@ -43,9 +43,9 @@ jobs:
 
       - name: Verify generated bundles
         run: |
-          test -s dist/app-info-parser.js
-          test -s dist/app-info-parser.min.js
-          if grep -q 'sourceMappingURL' dist/app-info-parser.min.js; then
+          test -s dist/app-info-parser-next.js
+          test -s dist/app-info-parser-next.min.js
+          if grep -q 'sourceMappingURL' dist/app-info-parser-next.min.js; then
             echo 'Unexpected stale sourceMappingURL in minified bundle'
             exit 1
           fi
