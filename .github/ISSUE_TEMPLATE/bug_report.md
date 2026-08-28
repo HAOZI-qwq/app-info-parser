@@ -1,45 +1,39 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Report an APK/IPA parsing problem
 title: ''
-labels: ''
-assignees: chenquincy
-
+labels: bug
+assignees: HAOZI-qwq
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+## Describe the bug / 问题描述
 
-**To Reproduce**
-Steps to reproduce the behavior:
+Please describe what happened and what you expected.
+请简要描述实际表现和预期表现。
+
+## Reproduction / 复现步骤
+
 1. ...
 2. ...
+3. ...
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+## Environment / 环境
 
-**Node or Browser version (please complete the following information):**
- - Browser [e.g. chrome72.0.3626.121]
- - Node [e.g. v8.9.4]
+- Browser and version / 浏览器及版本：
+- Node.js version / Node.js 版本：
+- app-info-parser version / 版本：
 
-**Package links for testing(downloadable links of the package, which making this issue)**
-- http://xxx.com/test-apk.apk
+## Test package / 测试安装包
 
+If possible, provide a downloadable APK/IPA that reproduces the issue. Please do not upload packages containing private or sensitive data.
+如方便，请提供可复现问题的 APK/IPA 下载地址；请勿上传包含隐私或敏感数据的安装包。
 
-**描述 bug**
-请简明扼要的描述你所遇到的bug
+## Error output / 错误信息
 
-**复现**
-请描述复现该bug的步骤:
-1. ...
-2. ...
+```text
+Paste the complete error here.
+```
 
-**预期表现**
-请简明扼要的描述你所期望得到的效果
+## Additional context / 其他信息
 
-**请填写您的Node或浏览器版本:**
- - Browser [如：chrome72.0.3626.121]
- - Node [如：v8.9.4]
-
-**请提供测试用的安装包下载链接:**
-- http://xxx.com/test-apk.apk
+Add any other details that may help reproduce or diagnose the issue.
