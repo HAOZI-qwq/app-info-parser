@@ -1208,6 +1208,8 @@ function isRasterImagePath(path) {
 /**
  * Return APK icon candidates ordered from most useful to least useful.
  * Raster icons are preferred over adaptive/vector XML resources.
+ * Density names are only a hint: optimized APKs may flatten/obfuscate resource
+ * paths, so ApkParser also compares the intrinsic dimensions of each image.
  */
 function findApkIconPaths(info) {
   if (!info || !info.application || !info.application.icon) return [];
@@ -1258,6 +1260,102 @@ function detectImageMimeType(buffer) {
   if (buffer.length >= 6 && buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x38 && (buffer[4] === 0x37 || buffer[4] === 0x39) && buffer[5] === 0x61) return 'image/gif';
   return null;
 }
+function readUInt16LE(buffer, offset) {
+  return (buffer[offset] | buffer[offset + 1] << 8) >>> 0;
+}
+function readUInt16BE(buffer, offset) {
+  return (buffer[offset] << 8 | buffer[offset + 1]) >>> 0;
+}
+function readUInt24LE(buffer, offset) {
+  return (buffer[offset] | buffer[offset + 1] << 8 | buffer[offset + 2] << 16) >>> 0;
+}
+function readUInt32BE(buffer, offset) {
+  return buffer[offset] * 0x1000000 + (buffer[offset + 1] << 16) + (buffer[offset + 2] << 8) + buffer[offset + 3] >>> 0;
+}
+
+/**
+ * Read intrinsic image dimensions without decoding or re-encoding the image.
+ * Supports PNG, WebP (VP8/VP8L/VP8X), JPEG and GIF.
+ */
+function getImageDimensions(buffer, mimeType) {
+  if (!buffer || typeof buffer.length !== 'number') return null;
+  var type = mimeType || detectImageMimeType(buffer);
+  if (type === 'image/png' && buffer.length >= 24) {
+    var width = readUInt32BE(buffer, 16);
+    var height = readUInt32BE(buffer, 20);
+    return width && height ? {
+      width: width,
+      height: height
+    } : null;
+  }
+  if (type === 'image/gif' && buffer.length >= 10) {
+    var _width = readUInt16LE(buffer, 6);
+    var _height = readUInt16LE(buffer, 8);
+    return _width && _height ? {
+      width: _width,
+      height: _height
+    } : null;
+  }
+  if (type === 'image/webp' && buffer.length >= 20) {
+    var chunk = String.fromCharCode(buffer[12], buffer[13], buffer[14], buffer[15]);
+    if (chunk === 'VP8X' && buffer.length >= 30) {
+      var _width2 = readUInt24LE(buffer, 24) + 1;
+      var _height2 = readUInt24LE(buffer, 27) + 1;
+      return {
+        width: _width2,
+        height: _height2
+      };
+    }
+    if (chunk === 'VP8 ' && buffer.length >= 30 && buffer[23] === 0x9d && buffer[24] === 0x01 && buffer[25] === 0x2a) {
+      var _width3 = readUInt16LE(buffer, 26) & 0x3fff;
+      var _height3 = readUInt16LE(buffer, 28) & 0x3fff;
+      return _width3 && _height3 ? {
+        width: _width3,
+        height: _height3
+      } : null;
+    }
+    if (chunk === 'VP8L' && buffer.length >= 25 && buffer[20] === 0x2f) {
+      var bits = (buffer[21] | buffer[22] << 8 | buffer[23] << 16 | buffer[24] << 24) >>> 0;
+      var _width4 = (bits & 0x3fff) + 1;
+      var _height4 = (bits >>> 14 & 0x3fff) + 1;
+      return {
+        width: _width4,
+        height: _height4
+      };
+    }
+    return null;
+  }
+  if (type === 'image/jpeg' && buffer.length >= 4) {
+    var offset = 2;
+    while (offset + 3 < buffer.length) {
+      if (buffer[offset] !== 0xff) {
+        offset++;
+        continue;
+      }
+      while (offset < buffer.length && buffer[offset] === 0xff) offset++;
+      if (offset >= buffer.length) break;
+      var marker = buffer[offset];
+      offset++;
+      if (marker === 0xd8 || marker === 0xd9 || marker >= 0xd0 && marker <= 0xd7) {
+        continue;
+      }
+      if (offset + 1 >= buffer.length) break;
+      var segmentLength = readUInt16BE(buffer, offset);
+      if (segmentLength < 2 || offset + segmentLength > buffer.length) break;
+      var isSof = marker >= 0xc0 && marker <= 0xcf && marker !== 0xc4 && marker !== 0xc8 && marker !== 0xcc;
+      if (isSof && segmentLength >= 7 && offset + 6 < buffer.length) {
+        var _height5 = readUInt16BE(buffer, offset + 3);
+        var _width5 = readUInt16BE(buffer, offset + 5);
+        return _width5 && _height5 ? {
+          width: _width5,
+          height: _height5
+        } : null;
+      }
+      offset += segmentLength;
+    }
+  }
+  return null;
+}
 
 /**
  * transform buffer to base64 data URI
@@ -1292,6 +1390,7 @@ module.exports = {
   findIpaIconPath: findIpaIconPath,
   isRasterImagePath: isRasterImagePath,
   detectImageMimeType: detectImageMimeType,
+  getImageDimensions: getImageDimensions,
   getBase64FromBuffer: getBase64FromBuffer,
   decodeNullUnicode: decodeNullUnicode
 };
