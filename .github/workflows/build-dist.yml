@@ -1,0 +1,60 @@
+name: Test and build browser dist
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'lib/**'
+      - 'test/**'
+      - 'package.json'
+      - '.babelrc'
+      - '.github/workflows/build-dist.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Run regression tests
+        run: npm test
+
+      - name: Build browser distribution
+        run: npm run dist
+
+      - name: Verify generated bundles
+        run: |
+          test -s dist/app-info-parser.js
+          test -s dist/app-info-parser.min.js
+          if grep -q 'sourceMappingURL' dist/app-info-parser.min.js; then
+            echo 'Unexpected stale sourceMappingURL in minified bundle'
+            exit 1
+          fi
+
+      - name: Commit generated dist
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add dist/app-info-parser.js dist/app-info-parser.min.js
+          if git diff --cached --quiet; then
+            echo 'dist is already up to date.'
+          else
+            git commit -m 'build: update browser dist'
+            git push
+          fi
