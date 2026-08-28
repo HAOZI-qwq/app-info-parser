@@ -3,7 +3,7 @@
 const { program } = require('commander')
 const fs = require('fs')
 const path = require('path')
-const AppInfoParser = require('../src')
+const AppInfoParser = require('../lib')
 
 const info = require('../package.json')
 
@@ -21,8 +21,12 @@ if (options.filePath) {
   parser.parse().then(result => {
     const outputPath = options.outputPath || './result.json'
     fs.writeFileSync(outputPath, JSON.stringify(result, null, 2))
+  }).catch(err => {
+    console.error('[app-info-parser-next] Parse failed:', err)
+    process.exitCode = 1
   })
 }
+
 if (Object.keys(options).length === 0) {
-  console.warn('[app-info-parser] Cannot run without argument. Try to run "app-info-parser -f <file-path>".')
+  console.warn('[app-info-parser-next] Cannot run without argument. Try to run "app-info-parser-next -f <file-path>".')
 }
