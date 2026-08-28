@@ -1,6 +1,10 @@
 node_modules/
 packages/
 src/
+.vscode/
+coverage/
+*.log
+.DS_Store
 package-lock.json
 yarn.lock
 yarn-error.log
