@@ -1,6 +1,7 @@
 const assert = require('assert')
 const BinaryXmlParser = require('../lib/xml-parser/binary')
 const ResourceFinder = require('../lib/resource-finder')
+const ApkParser = require('../lib/apk')
 const ByteBuffer = require('bytebuffer')
 const utils = require('../lib/utils')
 
@@ -194,4 +195,73 @@ function simpleEntry (key, dataType, data, size = 8) {
   assert.strictEqual(utils.detectImageMimeType(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])), 'image/png')
 }
 
-console.log('all targeted tests passed')
+function fakePng (width, height) {
+  const b = Buffer.alloc(24)
+  Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]).copy(b, 0)
+  b.write('IHDR', 12, 'ascii')
+  b.writeUInt32BE(width, 16)
+  b.writeUInt32BE(height, 20)
+  return b
+}
+
+function fakeWebpVp8x (width, height) {
+  const b = Buffer.alloc(30)
+  b.write('RIFF', 0, 'ascii')
+  b.writeUInt32LE(22, 4)
+  b.write('WEBP', 8, 'ascii')
+  b.write('VP8X', 12, 'ascii')
+  b.writeUInt32LE(10, 16)
+  const w = width - 1
+  const h = height - 1
+  b[24] = w & 0xff
+  b[25] = (w >>> 8) & 0xff
+  b[26] = (w >>> 16) & 0xff
+  b[27] = h & 0xff
+  b[28] = (h >>> 8) & 0xff
+  b[29] = (h >>> 16) & 0xff
+  return b
+}
+
+// Intrinsic dimensions must be readable without decoding the image.
+{
+  assert.deepStrictEqual(utils.getImageDimensions(fakePng(512, 256)), { width: 512, height: 256 })
+  assert.deepStrictEqual(utils.getImageDimensions(fakeWebpVp8x(192, 192)), { width: 192, height: 192 })
+
+  const gif = Buffer.alloc(10)
+  gif.write('GIF89a', 0, 'ascii')
+  gif.writeUInt16LE(320, 6)
+  gif.writeUInt16LE(240, 8)
+  assert.deepStrictEqual(utils.getImageDimensions(gif), { width: 320, height: 240 })
+}
+
+async function runAsyncTests () {
+  // Optimized/R8 APKs can flatten resource paths so density qualifiers vanish.
+  // The largest actual bitmap must win even when the file names are opaque.
+  const entries = {
+    'res/d2.webp': fakeWebpVp8x(48, 48),
+    'res/MO.webp': fakeWebpVp8x(72, 72),
+    'res/qs.webp': fakeWebpVp8x(96, 96),
+    'res/Sn.webp': fakeWebpVp8x(144, 144),
+    'res/sK.webp': fakeWebpVp8x(192, 192)
+  }
+
+  const parser = Object.create(ApkParser.prototype)
+  parser.getEntry = async regex => {
+    for (const path of Object.keys(entries)) {
+      regex.lastIndex = 0
+      if (regex.test(path)) return entries[path]
+    }
+    throw new Error('entry not found')
+  }
+
+  const result = await parser._loadIcon(Object.keys(entries))
+  assert.strictEqual(result.path, 'res/sK.webp')
+  assert.deepStrictEqual(result.dimensions, { width: 192, height: 192 })
+}
+
+runAsyncTests()
+  .then(() => console.log('all targeted tests passed'))
+  .catch(err => {
+    console.error(err)
+    process.exitCode = 1
+  })
