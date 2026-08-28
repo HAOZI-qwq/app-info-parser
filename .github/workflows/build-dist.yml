@@ -6,6 +6,7 @@ on:
       - master
     paths:
       - 'lib/**'
+      - 'bin/**'
       - 'test/**'
       - 'package.json'
       - '.babelrc'
@@ -33,6 +34,9 @@ jobs:
 
       - name: Run regression tests
         run: npm test
+
+      - name: CLI smoke test
+        run: node bin/index.js --version
 
       - name: Build browser distribution
         run: npm run dist
