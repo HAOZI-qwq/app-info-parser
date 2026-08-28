@@ -1,6 +1,6 @@
-const AppInfoParser = require('../src/index')
-const IpaParser = require('../src/ipa')
-const ApkParser = require('../src/apk')
+const AppInfoParser = require('../lib')
+const IpaParser = require('../lib/ipa')
+const ApkParser = require('../lib/apk')
 
 // AppInfoParser parse apk
 const apkInfoParser = new AppInfoParser('../packages/test.apk')
