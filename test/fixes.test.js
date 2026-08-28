@@ -4,6 +4,10 @@ const ResourceFinder = require('../lib/resource-finder')
 const ByteBuffer = require('bytebuffer')
 const utils = require('../lib/utils')
 
+function wrapLE (buffer) {
+  return ByteBuffer.wrap(buffer, 'binary', true)
+}
+
 // TypedValue complex dimension: 10dp, radix 23p0.
 {
   const b = Buffer.alloc(4)
@@ -102,7 +106,7 @@ function simpleEntry (key, dataType, data, size = 8) {
   const idx = Buffer.alloc(8)
   idx.writeUInt32LE(0, 0)
   idx.writeUInt32LE(24, 4)
-  rf.processType(ByteBuffer.wrap(fullTypeChunk({ entryCount: 2, indices: idx, entriesStart: 32, entries })))
+  rf.processType(wrapLE(fullTypeChunk({ entryCount: 2, indices: idx, entriesStart: 32, entries })))
   assert.deepStrictEqual(rf.responseMap['@7F010000'], ['A'])
   assert.deepStrictEqual(rf.responseMap['@7F010001'], ['B'])
 }
@@ -117,7 +121,7 @@ function simpleEntry (key, dataType, data, size = 8) {
   idx.writeUInt16LE(5, 0)
   idx.writeUInt16LE(0, 2)
   const entries = simpleEntry(0, 3, 0)
-  rf.processType(ByteBuffer.wrap(fullTypeChunk({ flags: 1, entryCount: 1, indices: idx, entriesStart: 28, entries })))
+  rf.processType(wrapLE(fullTypeChunk({ flags: 1, entryCount: 1, indices: idx, entriesStart: 28, entries })))
   assert.deepStrictEqual(rf.responseMap['@7F010005'], ['S'])
 }
 
@@ -131,7 +135,7 @@ function simpleEntry (key, dataType, data, size = 8) {
   idx.writeUInt16LE(0xffff, 0)
   idx.writeUInt16LE(0, 2)
   const entries = simpleEntry(0, 3, 0)
-  rf.processType(ByteBuffer.wrap(fullTypeChunk({ flags: 2, entryCount: 2, indices: idx, entriesStart: 28, entries })))
+  rf.processType(wrapLE(fullTypeChunk({ flags: 2, entryCount: 2, indices: idx, entriesStart: 28, entries })))
   assert.deepStrictEqual(rf.responseMap['@7F010001'], ['O'])
 }
 
@@ -147,7 +151,7 @@ function simpleEntry (key, dataType, data, size = 8) {
   entry.writeUInt16LE(0, 0)
   entry.writeUInt16LE((3 << 8) | 0x08, 2)
   entry.writeUInt32LE(0, 4)
-  rf.processType(ByteBuffer.wrap(fullTypeChunk({ entryCount: 1, indices: idx, entriesStart: 28, entries: entry })))
+  rf.processType(wrapLE(fullTypeChunk({ entryCount: 1, indices: idx, entriesStart: 28, entries: entry })))
   assert.deepStrictEqual(rf.responseMap['@7F010000'], ['C'])
 }
 
@@ -169,7 +173,7 @@ function simpleEntry (key, dataType, data, size = 8) {
   b.writeUInt16LE(text.charCodeAt(1), 36)
   b.writeUInt16LE(0, 38)
   const rf = new ResourceFinder()
-  assert.deepStrictEqual(rf.processStringPool(require('bytebuffer').wrap(b)), [text])
+  assert.deepStrictEqual(rf.processStringPool(wrapLE(b)), [text])
 }
 
 // Icon selection prefers actual high-density raster over adaptive XML.
