@@ -16,8 +16,8 @@
   ],
   "scripts": {
     "test": "node ./test/fixes.test.js",
-    "build:browser": "rimraf dist/* && browserify lib/index.js -t [ babelify ] -s AppInfoParser | derequire > dist/app-info-parser.js",
-    "minify": "uglifyjs ./dist/app-info-parser.js -o ./dist/app-info-parser.min.js -c -m",
+    "build:browser": "rimraf dist/* && browserify lib/index.js -t [ babelify ] -s AppInfoParser | derequire > dist/app-info-parser-next.js",
+    "minify": "uglifyjs ./dist/app-info-parser-next.js -o ./dist/app-info-parser-next.min.js -c -m",
     "dist": "npm run build:browser && npm run minify"
   },
   "bin": "./bin/index.js",
