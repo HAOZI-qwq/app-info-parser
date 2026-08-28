@@ -56,5 +56,6 @@ jobs:
             echo 'dist is already up to date.'
           else
             git commit -m 'build: update browser dist'
+            git pull --rebase origin master
             git push
           fi
