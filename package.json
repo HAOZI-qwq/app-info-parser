@@ -1,7 +1,7 @@
 {
   "name": "app-info-parser",
-  "version": "1.1.6",
-  "description": "Exact info from apk or ipa file.",
+  "version": "1.1.7-fixed.1",
+  "description": "Maintained fork of app-info-parser with modern APK/IPA parsing fixes.",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "typings": "./lib/index.d.ts",
@@ -26,9 +26,22 @@
     "apk",
     "parser",
     "browser",
-    "node"
+    "node",
+    "android",
+    "resources.arsc"
   ],
   "author": "Quincy Chen <mail@chenquincy.cn>",
+  "maintainers": [
+    "HAOZI-qwq"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HAOZI-qwq/app-info-parser.git"
+  },
+  "bugs": {
+    "url": "https://github.com/HAOZI-qwq/app-info-parser/issues"
+  },
+  "homepage": "https://github.com/HAOZI-qwq/app-info-parser#readme",
   "license": "MIT",
   "dependencies": {
     "bplist-parser": "^0.2.0",
