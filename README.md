@@ -158,6 +158,40 @@ dist/app-info-parser.js
 dist/app-info-parser.min.js
 ```
 
+### Automatic build / 自动编译
+
+仓库中的 GitHub Actions 会在 `master` 的核心源码、测试或构建配置发生变化时自动执行：
+
+```text
+安装依赖 → 回归测试 → 编译 dist → 校验 → 自动提交新的 dist
+```
+
+自动编译只更新构建产物，**不会自动创建 GitHub Release**。
+
+## Release / 发布版本
+
+本仓库提供单独的 `Release` GitHub Actions 工作流。它采用手动触发，避免普通代码修改被误发布为正式版本。
+
+发布时只需要：
+
+1. 确认 `package.json` 中的 `version` 是你要发布的版本。
+2. 打开 GitHub 仓库的 **Actions** 页面。
+3. 左侧选择 **Release**。
+4. 点击 **Run workflow**。
+5. 工作流会自动运行测试和编译。
+6. 自动创建对应的 Git Tag，例如 `v1.1.7-fixed.1`。
+7. 自动创建 GitHub Release。
+8. 自动把以下文件作为 Release 附件上传：
+
+```text
+dist/app-info-parser.js
+dist/app-info-parser.min.js
+```
+
+GitHub 还会自动为每个 Release 提供源码的 `.zip` 和 `.tar.gz` 下载包。
+
+如果同版本的 Release 已经存在，再次运行工作流只会重新上传最新的 `dist` 附件，不会重复创建版本。
+
 ## Versioning
 
 本 fork 从上游 `1.1.6` 继续维护，首个维护版使用：
