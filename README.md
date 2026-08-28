@@ -94,15 +94,15 @@ parser.parse().then(result => {
 可以直接使用仓库中构建后的：
 
 ```text
-dist/app-info-parser.js
-dist/app-info-parser.min.js
+dist/app-info-parser-next.js
+dist/app-info-parser-next.min.js
 ```
 
 示例：
 
 ```html
 <input type="file" id="file" onchange="fileSelect()">
-<script src="./dist/app-info-parser.min.js"></script>
+<script src="./dist/app-info-parser-next.min.js"></script>
 <script>
 function fileSelect () {
   const files = document.getElementById('file').files
@@ -158,8 +158,8 @@ npm run dist
 输出：
 
 ```text
-dist/app-info-parser.js
-dist/app-info-parser.min.js
+dist/app-info-parser-next.js
+dist/app-info-parser-next.min.js
 ```
 
 ### Automatic build / 自动编译
@@ -188,8 +188,8 @@ dist/app-info-parser.min.js
 8. 自动把以下文件作为 Release 附件上传
 
 ```text
-dist/app-info-parser.js
-dist/app-info-parser.min.js
+dist/app-info-parser-next.js
+dist/app-info-parser-next.min.js
 ```
 
 GitHub 还会自动为每个 Release 提供源码的 `.zip` 和 `.tar.gz` 下载包
