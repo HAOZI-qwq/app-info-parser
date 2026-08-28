@@ -1,4 +1,4 @@
-# app-info-parser
+# app-info-parser-next
 
 > A maintained fork of [chenquincy/app-info-parser](https://github.com/chenquincy/app-info-parser), focused on modern APK/IPA parsing compatibility and bug fixes.
 
@@ -50,13 +50,13 @@
 如果需要直接使用本仓库版本，可以从 GitHub 安装：
 
 ```shell
-npm install github:HAOZI-qwq/app-info-parser
+npm install github:HAOZI-qwq/app-info-parser-next
 ```
 
 或者：
 
 ```shell
-yarn add github:HAOZI-qwq/app-info-parser
+yarn add github:HAOZI-qwq/app-info-parser-next
 ```
 
 ### 上游 npm 包
@@ -72,7 +72,7 @@ npm install app-info-parser
 ### Node.js
 
 ```javascript
-const AppInfoParser = require('app-info-parser')
+const AppInfoParser = require('app-info-parser-next')
 
 const parser = new AppInfoParser('../packages/test.apk') // or xxx.ipa
 parser.parse().then(result => {
@@ -83,7 +83,7 @@ parser.parse().then(result => {
 })
 ```
 
-如果你通过 GitHub 安装本 fork，`require('app-info-parser')` 的使用方式保持不变。
+如果通过 GitHub 安装本 fork，包名为 `app-info-parser-next`。
 
 ### Browser
 
@@ -205,7 +205,7 @@ GitHub 还会自动为每个 Release 提供源码的 `.zip` 和 `.tar.gz` 下载
 ## Upstream / 原项目
 
 - Original repository: [chenquincy/app-info-parser](https://github.com/chenquincy/app-info-parser)
-- Maintained fork: [HAOZI-qwq/app-info-parser](https://github.com/HAOZI-qwq/app-info-parser)
+- Maintained fork: [HAOZI-qwq/app-info-parser-next](https://github.com/HAOZI-qwq/app-info-parser-next)
 
 感谢原作者及原项目贡献者提供的基础实现。
 
