@@ -1,6 +1,7 @@
 const assert = require('assert')
 const ApkParser = require('../lib/apk')
 const { vectorDrawableToSvg } = require('../lib/vector-drawable')
+const { parseAdaptiveIcon } = require('../lib/adaptive-icon')
 
 function encodeLength8 (value) {
   if (value < 0x80) return Buffer.from([value])
@@ -100,6 +101,15 @@ function endElement (nameRef) {
   return buffer
 }
 
+function binaryXml (chunks) {
+  const size = 8 + chunks.reduce((total, chunk) => total + chunk.length, 0)
+  const header = Buffer.alloc(8)
+  header.writeUInt16LE(3, 0)
+  header.writeUInt16LE(8, 2)
+  header.writeUInt32LE(size, 4)
+  return Buffer.concat([header].concat(chunks))
+}
+
 function floatBits (value) {
   const buffer = Buffer.alloc(4)
   buffer.writeFloatLE(value, 0)
@@ -119,7 +129,7 @@ function fakeVectorDrawable () {
     'M0,0H512V512H0z'
   ]
 
-  const chunks = [
+  return binaryXml([
     stringPoolChunk(strings),
     startElement(0, [
       { nameRef: 1, type: 5, data: (512 << 8) | 1 },
@@ -133,14 +143,20 @@ function fakeVectorDrawable () {
     ]),
     endElement(5),
     endElement(0)
-  ]
+  ])
+}
 
-  const size = 8 + chunks.reduce((total, chunk) => total + chunk.length, 0)
-  const header = Buffer.alloc(8)
-  header.writeUInt16LE(3, 0)
-  header.writeUInt16LE(8, 2)
-  header.writeUInt32LE(size, 4)
-  return Buffer.concat([header].concat(chunks))
+function fakeAdaptiveIcon () {
+  const strings = ['adaptive-icon', 'background', 'foreground', 'drawable']
+  return binaryXml([
+    stringPoolChunk(strings),
+    startElement(0, []),
+    startElement(1, [{ nameRef: 3, type: 1, data: 0x7f010001 }]),
+    endElement(1),
+    startElement(2, [{ nameRef: 3, type: 1, data: 0x7f010002 }]),
+    endElement(2),
+    endElement(0)
+  ])
 }
 
 function fakePng (width, height) {
@@ -162,6 +178,12 @@ assert.strictEqual(converted.viewportHeight, 512)
 assert(converted.svg.includes('viewBox="0 0 512 512"'))
 assert(converted.svg.includes('fill="#4398d4"'))
 assert(converted.svg.includes('d="M0,0H512V512H0z"'))
+
+const adaptiveBuffer = fakeAdaptiveIcon()
+const adaptiveDefinition = parseAdaptiveIcon(adaptiveBuffer)
+assert(adaptiveDefinition)
+assert.strictEqual(adaptiveDefinition.background.value, 'resourceId:0x7f010001')
+assert.strictEqual(adaptiveDefinition.foreground.value, 'resourceId:0x7f010002')
 
 async function run () {
   const entries = {
@@ -185,10 +207,38 @@ async function run () {
   assert.strictEqual(result.isVector, true)
   assert.deepStrictEqual(result.dimensions, { width: 512, height: 512 })
   assert(result.buffer.toString('utf8').startsWith('<svg '))
+
+  const adaptiveEntries = {
+    'res/mipmap-anydpi-v26/ic_launcher.xml': adaptiveBuffer,
+    'res/drawable/ic_launcher_foreground.xml': vectorBuffer
+  }
+  parser.getEntry = async regex => {
+    for (const path of Object.keys(adaptiveEntries)) {
+      regex.lastIndex = 0
+      if (regex.test(path)) return adaptiveEntries[path]
+    }
+    throw new Error('entry not found')
+  }
+
+  const adaptiveResult = await parser._loadIcon(
+    ['res/mipmap-anydpi-v26/ic_launcher.xml'],
+    {
+      '@7F010001': [String(0xffff0000 >>> 0)],
+      '@7F010002': ['res/drawable/ic_launcher_foreground.xml']
+    }
+  )
+
+  assert(adaptiveResult)
+  assert.strictEqual(adaptiveResult.mimeType, 'image/svg+xml')
+  assert.strictEqual(adaptiveResult.isVector, true)
+  assert.deepStrictEqual(adaptiveResult.dimensions, { width: 432, height: 432 })
+  assert(adaptiveResult.adaptiveIcons.background.startsWith('data:image/svg+xml;base64,'))
+  assert(adaptiveResult.adaptiveIcons.foreground.startsWith('data:image/svg+xml;base64,'))
+  assert(adaptiveResult.buffer.toString('utf8').includes('<image '))
 }
 
 run()
-  .then(() => console.log('vector drawable tests passed'))
+  .then(() => console.log('vector/adaptive icon tests passed'))
   .catch(error => {
     console.error(error)
     process.exitCode = 1
