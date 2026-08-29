@@ -79,14 +79,14 @@ The entries below are preserved from the original project.
 ### Bug Fixes
 
 * add attribute uses-permisson-sdk-23 ([4e6af71](https://github.com/chenquincy/app-info-parser/commit/4e6af7189ea843bd475fc808b7e126cee9011196))
-* **ipa:** match shorter path of info.plist ([e74fa87](https://github.com/chenquincy/app-info-parser/commit/e74fa87590f4f085b8e2308089868)), closes [#86](https://github.com/chenquincy/app-info-parser/issues/86)
-* without mini files ([61d43372](https://github.com/chenquincy/app-info-parser/commit/61d43372be186996ca8def5617d938a88924ddfb))
+* **ipa:** match shorter path of info.plist ([e74fa87](https://github.com/chenquincy/app-info-parser/commit/e74fa87590f4d16e8a0f162f085b8e2308089868)), closes [#86](https://github.com/chenquincy/app-info-parser/issues/86)
+* without mini files ([61d4337](https://github.com/chenquincy/app-info-parser/commit/61d43372be186996ca8def5617d938a88924ddfb))
 
 ### [1.1.5](https://github.com/chenquincy/app-info-parser/compare/v1.1.4...v1.1.5) (2023-05-08)
 
 ### Bug Fixes
 
-* **ipa:** match shorter path of info.plist ([e74fa87](https://github.com/chenquincy/app-info-parser/commit/e74fa87590f4f085b8e2308089868)), closes [#86](https://github.com/chenquincy/app-info-parser/issues/86)
+* **ipa:** match shorter path of info.plist ([e74fa87](https://github.com/chenquincy/app-info-parser/commit/e74fa87590f4d16e8a0f162f085b8e2308089868)), closes [#86](https://github.com/chenquincy/app-info-parser/issues/86)
 
 ### [1.1.4](https://github.com/chenquincy/app-info-parser/compare/v1.1.2...v1.1.4) (2022-08-08)
 
