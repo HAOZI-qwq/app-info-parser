@@ -1,86 +1,124 @@
-
 /**
- * AppInfoParser - Parse APK/IPA files to extract app information
- * 
+ * app-info-parser-next - Parse APK, IPA and zipped .app bundles
+ *
  * @example
  * ```typescript
- * import AppInfoParser from 'app-info-parser';
- * 
- * const parser = new AppInfoParser('/path/to/app.apk');
- * const info = await parser.parse();
- * console.log(info.package, info.versionName);
+ * import AppInfoParser = require('app-info-parser-next')
+ *
+ * const parser = new AppInfoParser('/path/to/app.apk')
+ * const info = await parser.parse()
+ * console.log(info.package, info.versionName, info.abis)
  * ```
  */
 declare class AppInfoParser {
-    /**
-     * Create a new parser instance
-     * @param filePath - Path to the APK or IPA file
-     */
-    constructor(filePath: string);
+    /** Node file path or a browser File/Blob-like object */
+    constructor(file: string | AppInfoParser.FileLike);
 
-    /**
-     * Parse the APK/IPA file and extract app information
-     * @returns Parsed app information containing package details
-     * @throws {Error} If file cannot be parsed
-     */
+    /** Parse the package and return its metadata */
     parse(): Promise<AppInfoParser.AppInfo>;
 }
 
 declare namespace AppInfoParser {
     /**
-     * Application information extracted from APK/IPA file
+     * Structural browser input type so Node-only TypeScript projects do not
+     * need to include the DOM lib just to consume this package's definitions.
+     * Browser File and Blob objects satisfy this shape.
      */
-    export interface AppInfo {
-        /**
-         * Package/Bundle identifier
-         * @example "com.example.myapp"
-         */
-        package: string;
-
-        /**
-         * Numeric version code (Android) or build number (iOS)
-         * @example 123
-         */
-        versionCode: number;
-
-        /**
-         * Human-readable version string
-         * @example "1.2.3"
-         */
-        versionName: string;
-
-        /**
-         * Application metadata and resources
-         */
-        application?: ApplicationInfo;
-
-        /**
-         * Platform-specific metadata
-         * Additional fields vary by platform (APK vs IPA)
-         */
+    export interface FileLike {
+        size: number;
+        name?: string;
         [key: string]: any;
     }
 
-    /**
-     * Application metadata from manifest
-     */
+    export interface AdaptiveIcons {
+        background?: string;
+        foreground?: string;
+        monochrome?: string;
+    }
+
+    export interface ResourceConfiguration {
+        locale: string;
+        language: string;
+        region: string;
+        mcc: number;
+        mnc: number;
+        orientation: number;
+        touchscreen: number;
+        density: number;
+        densityQualifier: string;
+        keyboard: number;
+        navigation: number;
+        inputFlags: number;
+        screenWidth: number;
+        screenHeight: number;
+        sdkVersion: number;
+        minorVersion: number;
+        screenLayout: number;
+        uiMode: number;
+        smallestScreenWidthDp: number;
+        screenWidthDp: number;
+        screenHeightDp: number;
+    }
+
+    export interface ResourceConfigSummary {
+        locales: string[];
+        densities: string[];
+        sdkVersions: number[];
+        configurations: ResourceConfiguration[];
+    }
+
     export interface ApplicationInfo {
-        /**
-         * App display name/label
-         * Can contain multiple language variants
-         * @example ["My App", "我的应用"]
-         */
-        label?: string[];
+        /** App display label, possibly with multiple resource variants */
+        label?: string | string[];
 
-        /**
-         * Path to app icon within package
-         * @example "res/drawable/icon.png"
-         */
-        icon?: string;
+        /** Manifest icon resource/path, possibly with multiple variants */
+        icon?: string | string[];
 
-        /**
-         * Other manifest attributes
-         */
+        [key: string]: any;
+    }
+
+    /** Common result shape. Platform-specific fields are also preserved. */
+    export interface AppInfo {
+        /** Android package name */
+        package?: string;
+
+        /** Android numeric version code */
+        versionCode?: number;
+
+        /** Android human-readable version */
+        versionName?: string;
+
+        /** Android manifest application node */
+        application?: ApplicationInfo;
+
+        /** Browser-renderable Data URI (raster image or SVG) */
+        icon?: string | null;
+
+        /** Resource path used to produce icon */
+        iconPath?: string | null;
+
+        /** Adaptive Icon layers when an adaptive launcher icon was resolved */
+        adaptiveIcons?: AdaptiveIcons | null;
+
+        /** Native ABIs found under lib/<abi>/*.so in APKs */
+        abis?: string[];
+
+        /** Summary of Android ResTable_config variants */
+        resourceConfigs?: ResourceConfigSummary;
+
+        /** Parsed iOS embedded.mobileprovision plist */
+        mobileProvision?: Record<string, any>;
+
+        /** iOS bundle identifier */
+        CFBundleIdentifier?: string;
+
+        /** iOS user-visible version */
+        CFBundleShortVersionString?: string;
+
+        /** iOS build version */
+        CFBundleVersion?: string;
+
+        /** Additional manifest/plist fields are preserved */
         [key: string]: any;
     }
 }
