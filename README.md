@@ -2,7 +2,7 @@
 
 > A maintained fork of [chenquincy/app-info-parser](https://github.com/chenquincy/app-info-parser), focused on modern APK/IPA parsing compatibility and bug fixes
 
-一个用于解析 `.apk` / `.ipa` 应用信息的 JavaScript 解析器，支持 Node.js 和浏览器环境
+一个用于解析 `.apk` / `.ipa` / 压缩 `.app` 应用信息的 JavaScript 解析器，支持 Node.js 和浏览器环境
 
 解析结果主要来自 Android `AndroidManifest.xml`、`resources.arsc` 以及 iOS `Info.plist` / `embedded.mobileprovision`
 
@@ -26,6 +26,7 @@
 - 支持 `FLAG_COMPACT`
 - 按真实 resource entry offset 定位资源项
 - 修复资源引用解析顺序问题
+- 解析 `ResTable_config`，输出 locale、density、sdkVersion 等配置摘要
 - 保留 Unicode、空格及特殊字符形式的 `versionName`
 - 修复 UTF-16 String Pool 解码
 - 修复 String Pool 索引 `0` 被误判为空的问题
@@ -33,11 +34,17 @@
 - 改进 APK 图标选择逻辑
 - R8 / resource shrinking 后即使图标路径被压缩或混淆，也会读取真实图片尺寸并选择最大位图
 - 支持 Android VectorDrawable XML 图标转换为 SVG
+- 支持 Adaptive Icon 的 background / foreground / monochrome 解析
+- 支持把 Adaptive Icon background + foreground 合成为可直接显示的 SVG 图标
 - 纯 VectorDrawable 且没有 PNG / WebP fallback 的 APK 也可以正常返回图标
 - 避免将 Adaptive Icon XML 错误标记为 PNG
 - 支持 PNG / WebP / JPEG / GIF 图标 MIME 与真实尺寸识别
+- 支持读取 APK 原生 ABI 列表，例如 `arm64-v8a` / `armeabi-v7a` / `x86_64`
+- 修复 Node.js 解析完成后 APK / IPA 文件句柄未释放的问题
 - 修复浏览器 ZIP Worker 未释放导致的资源泄漏
+- 支持直接解析压缩后的 `.app` ZIP 包
 - 修复 IPA 大图标转换时可能出现的 `Maximum call stack size exceeded`
+- 完善 TypeScript 类型定义
 - 改进 Manifest / resources 解析异常信息，保留原始错误原因
 
 详细说明见 [FIXES.md](./FIXES.md)
@@ -46,6 +53,9 @@
 
 - Node.js ✅
 - Browser ✅（IE 除外）
+- APK ✅
+- IPA ✅
+- zipped `.app` ✅
 - NPX ✅
 
 ## Installation
@@ -81,10 +91,10 @@ npm install app-info-parser
 ```javascript
 const AppInfoParser = require('app-info-parser-next')
 
-const parser = new AppInfoParser('../packages/test.apk') // or xxx.ipa
+const parser = new AppInfoParser('../packages/test.apk') // xxx.apk / xxx.ipa / zipped xxx.app
 parser.parse().then(result => {
   console.log('app info ----> ', result)
-  console.log('icon base64 ----> ', result.icon)
+  console.log('icon ----> ', result.icon)
 }).catch(err => {
   console.log('err ----> ', err)
 })
@@ -139,14 +149,41 @@ npx app-info-parser -f <file-path> -o <output-path>
 
 - Browser: `Blob` / `File`
 - Node.js: 文件路径
+- 支持 `.apk` / `.ipa` / 压缩 `.app` 的 `.zip`
 
 #### `parse()`
 
-返回 `Promise<Object>`，解析成功后得到 APK/IPA 信息
+返回 `Promise<Object>`，解析成功后得到应用信息
 
-APK 的 `result.icon` 可能是 PNG / WebP / JPEG / GIF Data URI，也可能是由 Android VectorDrawable 转换得到的 `data:image/svg+xml;base64,...`
+APK 的 `result.icon` 可能是 PNG / WebP / JPEG / GIF Data URI，也可能是由 VectorDrawable 或 Adaptive Icon 生成的 `data:image/svg+xml;base64,...`
 
 `result.iconPath` 会保留最终选中的 APK 内部图标资源路径
+
+Adaptive Icon 成功解析时会额外返回：
+
+```javascript
+result.adaptiveIcons = {
+  background: 'data:...',
+  foreground: 'data:...',
+  monochrome: 'data:...'
+}
+```
+
+APK 原生库架构：
+
+```javascript
+result.abis
+// ['armeabi-v7a', 'arm64-v8a']
+```
+
+Android 资源配置摘要：
+
+```javascript
+result.resourceConfigs.locales
+result.resourceConfigs.densities
+result.resourceConfigs.sdkVersions
+result.resourceConfigs.configurations
+```
 
 ## Build
 
@@ -177,6 +214,8 @@ dist/app-info-parser-next.min.js
 安装依赖 → 回归测试 → 编译 dist → 校验 → 自动提交新的 dist
 ```
 
+Windows CI 还会额外测试 Node ZIP 文件句柄是否正确释放，以及压缩 `.app` 是否可以正常解析
+
 自动编译只更新构建产物，**不会自动创建 GitHub Release**
 
 ## Release / 发布版本
@@ -190,7 +229,7 @@ dist/app-info-parser-next.min.js
 3. 左侧选择 **Release**
 4. 点击 **Run workflow**
 5. 工作流会自动运行测试和编译
-6. 自动创建对应的 Git Tag，例如 `v1.1.8`
+6. 自动创建对应的 Git Tag，例如 `v1.2.0`
 7. 自动创建 GitHub Release
 8. 自动把以下文件作为 Release 附件上传
 
@@ -207,7 +246,7 @@ GitHub 还会自动为每个 Release 提供源码的 `.zip` 和 `.tar.gz` 下载
 
 本 fork 从上游 `1.1.6` 继续维护
 
-首个维护版为 `1.1.7-fixed.1`，当前版本与后续具体修复记录见 [CHANGELOG.md](./CHANGELOG.md)
+首个维护版为 `1.1.7-fixed.1`，当前开发版本为 `1.2.0`，具体修复记录见 [CHANGELOG.md](./CHANGELOG.md)
 
 ## Upstream / 原项目
 
