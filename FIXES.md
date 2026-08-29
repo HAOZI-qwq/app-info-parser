@@ -20,6 +20,21 @@ Resource entries are now located using their actual entry offsets instead of bei
 
 Resource references are resolved after the relevant resource table data has been collected, reducing failures caused by reference targets that appear later in the table.
 
+### Resource configurations
+
+`ResTable_config` chunks are scanned separately so the legacy resource map can remain compatible while the parser exposes configuration metadata through `result.resourceConfigs`.
+
+The summary includes:
+
+- locale / language / region
+- density and density qualifier
+- SDK version
+- MCC / MNC
+- orientation
+- screen width / height
+- smallest width and width/height dp
+- input and UI mode fields
+
 ## Android typed values
 
 ### Dimension
@@ -89,9 +104,13 @@ For correctness, the converter falls back instead of returning a partially rende
 
 ### Adaptive icons
 
-Modern Android launcher icons may resolve to XML resources rather than directly to a raster image. The maintained fork avoids labeling XML bytes as `image/png` and improves raster fallback selection.
+Binary Android `<adaptive-icon>` resources are parsed for `background`, `foreground` and optional `monochrome` layers.
 
-Full Adaptive Icon foreground/background composition is separate from VectorDrawable conversion and is not yet treated as a complete rasterization engine.
+The layer resolver supports raster resources, VectorDrawable resources and simple color resources. Background and foreground are composed into an unmasked square SVG Data URI so the existing `result.icon` API remains a browser-renderable string.
+
+The resolved individual layers are also exposed through `result.adaptiveIcons` without changing the original `icon` value type.
+
+Launcher-specific circle/squircle masks are intentionally not baked into the output because Android launchers choose their own mask shape.
 
 ### Raster icon selection
 
@@ -104,13 +123,38 @@ The icon selector recognizes common image formats including:
 
 Intrinsic dimensions are read from the image headers without decoding or recompressing the image.
 
-## Browser ZIP Worker cleanup
+## APK native ABIs
+
+ZIP entry names under `lib/<abi>/*.so` are scanned without decompressing native libraries.
+
+The parser exposes the detected native architectures through `result.abis`, for example:
+
+```text
+armeabi-v7a
+arm64-v8a
+x86
+x86_64
+```
+
+## ZIP resource cleanup
+
+### Browser
 
 The browser ZIP implementation provides a `zipReader.close()` method that terminates its inflater Worker. The upstream integration could leave readers/workers alive after parsing.
 
 The maintained fork closes the reader after use to reduce Worker and memory accumulation during repeated APK/IPA parsing.
 
-## IPA large-icon conversion
+### Node.js
+
+The upstream Node adapter could return as soon as requested ZIP entries were found without closing the underlying `yauzl` file descriptor. On Windows this could leave an APK/IPA locked until the Node process exited.
+
+The maintained fork uses a managed Node unzip adapter and waits for the ZIP file descriptor to close before read operations resolve.
+
+A Windows GitHub Actions job verifies that a parsed ZIP can be renamed and deleted immediately.
+
+## iOS / IPA
+
+### Large-icon conversion
 
 The previous browser fallback could spread a large icon buffer into `String.fromCharCode.apply()`, which may throw:
 
@@ -119,6 +163,16 @@ Maximum call stack size exceeded
 ```
 
 The maintained implementation avoids passing an arbitrarily large byte array as one function-call argument list.
+
+### Compressed `.app` bundles
+
+In addition to normal IPA paths such as `Payload/App.app/Info.plist`, the parser accepts ZIP archives containing a directly compressed `.app` bundle such as `App.app/Info.plist`.
+
+The same plist, mobileprovision and icon parsing logic is reused for both layouts.
+
+## TypeScript
+
+The included declarations cover Node paths, browser File/Blob-like inputs, common APK/IPA metadata, SVG/raster icons, Adaptive Icon layers, ABIs and resource configuration summaries.
 
 ## Error reporting
 
@@ -131,7 +185,7 @@ The primary goals of this fork are:
 1. Preserve the existing `AppInfoParser` API where practical.
 2. Improve parsing correctness on newer Android APKs.
 3. Avoid changing original manifest values unnecessarily.
-4. Improve long-running browser behavior when parsing multiple packages.
+4. Improve long-running Node/browser behavior when parsing multiple packages.
 5. Keep the original MIT License and upstream attribution intact.
 
 ## Upstream
