@@ -32,9 +32,46 @@ jobs:
         id: version
         shell: bash
         run: |
-          TAG="v$(node -p "require('./package.json').version")"
+          VERSION="$(node -p "require('./package.json').version")"
+          TAG="v$VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "Release tag: $TAG"
+
+      - name: Generate bilingual release notes
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('fs')
+          const version = process.env.VERSION
+          const changelog = fs.readFileSync('CHANGELOG.md', 'utf8')
+          const marker = `## ${version}`
+          const start = changelog.indexOf(marker)
+
+          if (start < 0) {
+            console.error(`CHANGELOG.md does not contain a section for ${version}`)
+            process.exit(1)
+          }
+
+          const remainder = changelog.slice(start)
+          const separatorIndex = remainder.indexOf('\n---\n')
+          const nextVersionIndex = remainder.slice(marker.length).search(/\n## /)
+
+          let end = remainder.length
+          if (separatorIndex >= 0) end = Math.min(end, separatorIndex)
+          if (nextVersionIndex >= 0) end = Math.min(end, marker.length + nextVersionIndex)
+
+          const notes = remainder.slice(0, end).trim()
+          if (!notes) {
+            console.error(`Release notes for ${version} are empty`)
+            process.exit(1)
+          }
+
+          fs.writeFileSync('release-notes.md', notes + '\n')
+          console.log(notes)
+          NODE
 
       - name: Create tag if needed
         env:
@@ -58,7 +95,10 @@ jobs:
         shell: bash
         run: |
           if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "Release $TAG already exists; replacing distribution assets."
+            echo "Release $TAG already exists; updating bilingual notes and distribution assets."
+            gh release edit "$TAG" \
+              --title "$TAG" \
+              --notes-file release-notes.md
             gh release upload "$TAG" \
               dist/app-info-parser-next.js \
               dist/app-info-parser-next.min.js \
@@ -68,5 +108,5 @@ jobs:
               dist/app-info-parser-next.js \
               dist/app-info-parser-next.min.js \
               --title "$TAG" \
-              --generate-notes
+              --notes-file release-notes.md
           fi
