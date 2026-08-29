@@ -225,13 +225,15 @@ Windows CI 还会额外测试 Node ZIP 文件句柄是否正确释放，以及�
 发布时只需要：
 
 1. 确认 `package.json` 中的 `version` 是你要发布的版本
-2. 打开 GitHub 仓库的 **Actions** 页面
-3. 左侧选择 **Release**
-4. 点击 **Run workflow**
-5. 工作流会自动运行测试和编译
-6. 自动创建对应的 Git Tag，例如 `v1.2.0`
-7. 自动创建 GitHub Release
-8. 自动把以下文件作为 Release 附件上传
+2. 在 `CHANGELOG.md` 中准备同版本的中英双语更新日志章节
+3. 打开 GitHub 仓库的 **Actions** 页面
+4. 左侧选择 **Release**
+5. 点击 **Run workflow**
+6. 工作流会自动运行测试和编译
+7. 自动从 `CHANGELOG.md` 提取当前版本章节作为中英双语 Release Notes
+8. 自动创建对应的 Git Tag，例如 `v1.2.0`
+9. 自动创建 GitHub Release
+10. 自动把以下文件作为 Release 附件上传
 
 ```text
 dist/app-info-parser-next.js
@@ -240,7 +242,7 @@ dist/app-info-parser-next.min.js
 
 GitHub 还会自动为每个 Release 提供源码的 `.zip` 和 `.tar.gz` 下载包
 
-如果同版本的 Release 已经存在，再次运行工作流只会重新上传最新的 `dist` 附件，不会重复创建版本
+如果同版本的 Release 已经存在，再次运行工作流会更新该版本的双语 Release Notes，并覆盖上传最新的 `dist` 附件，不会重复创建版本
 
 ## Versioning
 
