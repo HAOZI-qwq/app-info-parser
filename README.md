@@ -31,8 +31,11 @@
 - 修复 String Pool 索引 `0` 被误判为空的问题
 - 修复 Android `dimension` / `fraction` / `float` 类型解析
 - 改进 APK 图标选择逻辑
+- R8 / resource shrinking 后即使图标路径被压缩或混淆，也会读取真实图片尺寸并选择最大位图
+- 支持 Android VectorDrawable XML 图标转换为 SVG
+- 纯 VectorDrawable 且没有 PNG / WebP fallback 的 APK 也可以正常返回图标
 - 避免将 Adaptive Icon XML 错误标记为 PNG
-- 支持 PNG / WebP / JPEG 图标 MIME 识别
+- 支持 PNG / WebP / JPEG / GIF 图标 MIME 与真实尺寸识别
 - 修复浏览器 ZIP Worker 未释放导致的资源泄漏
 - 修复 IPA 大图标转换时可能出现的 `Maximum call stack size exceeded`
 - 改进 Manifest / resources 解析异常信息，保留原始错误原因
@@ -141,6 +144,10 @@ npx app-info-parser -f <file-path> -o <output-path>
 
 返回 `Promise<Object>`，解析成功后得到 APK/IPA 信息
 
+APK 的 `result.icon` 可能是 PNG / WebP / JPEG / GIF Data URI，也可能是由 Android VectorDrawable 转换得到的 `data:image/svg+xml;base64,...`
+
+`result.iconPath` 会保留最终选中的 APK 内部图标资源路径
+
 ## Build
 
 安装依赖：
@@ -183,7 +190,7 @@ dist/app-info-parser-next.min.js
 3. 左侧选择 **Release**
 4. 点击 **Run workflow**
 5. 工作流会自动运行测试和编译
-6. 自动创建对应的 Git Tag，例如 `v1.1.7-fixed.1`
+6. 自动创建对应的 Git Tag，例如 `v1.1.8`
 7. 自动创建 GitHub Release
 8. 自动把以下文件作为 Release 附件上传
 
@@ -198,13 +205,9 @@ GitHub 还会自动为每个 Release 提供源码的 `.zip` 和 `.tar.gz` 下载
 
 ## Versioning
 
-本 fork 从上游 `1.1.6` 继续维护，首个维护版使用：
+本 fork 从上游 `1.1.6` 继续维护
 
-```text
-1.1.7-fixed.1
-```
-
-后续版本和具体修复记录见 [CHANGELOG.md](./CHANGELOG.md)
+首个维护版为 `1.1.7-fixed.1`，当前版本与后续具体修复记录见 [CHANGELOG.md](./CHANGELOG.md)
 
 ## Upstream / 原项目
 
