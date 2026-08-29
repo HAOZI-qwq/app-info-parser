@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.2.0 (2026-08-29)
+
+### Android icons
+
+- Add Android Adaptive Icon parsing for `background`, `foreground` and `monochrome` layers.
+- Compose Adaptive Icon background and foreground layers into a browser-renderable SVG Data URI while keeping `icon` as a string.
+- Expose resolved Adaptive Icon layers through the additive `adaptiveIcons` field.
+
+### Android metadata
+
+- Add APK native ABI detection from `lib/<abi>/*.so` without decompressing native libraries.
+- Add `resourceConfigs` with parsed `ResTable_config` locale, density, SDK and device-configuration metadata.
+- Keep the existing resource map representation unchanged for compatibility.
+
+### ZIP lifecycle
+
+- Replace the Node-side unzip adapter with a managed `yauzl` implementation that explicitly closes ZIP file descriptors before reads resolve.
+- Fix APK/IPA files remaining locked on Windows after `parse()` completes.
+- Add Windows CI coverage for immediate rename/delete after ZIP reads.
+
+### iOS
+
+- Add support for directly zipped `.app` bundles in addition to normal IPA `Payload/*.app` layout.
+- Keep IPA CgBI and normal image fallback behavior unchanged.
+
+### Types and tests
+
+- Expand TypeScript definitions for browser inputs, icons, Adaptive Icon layers, ABIs, resource configs and iOS fields.
+- Add regression tests for Adaptive Icons, ABIs, `ResTable_config`, Node file-handle release and compressed `.app` parsing.
+
+---
+
 ## 1.1.8 (2026-08-29)
 
 ### APK icons
