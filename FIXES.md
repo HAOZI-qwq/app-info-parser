@@ -60,17 +60,49 @@ Versión 1.0.27
 
 ## APK icons
 
+### R8 / resource shrinking icon paths
+
+Optimized release APKs may flatten or obfuscate resource paths, removing useful names such as `mipmap-xxxhdpi` from the final ZIP entries.
+
+The parser no longer relies only on density names in the path. PNG, WebP, JPEG and GIF candidates are inspected for their intrinsic width and height and the largest real bitmap is preferred.
+
+This avoids selecting a low-resolution icon merely because an optimized APK renamed entries to opaque paths such as `res/d2.webp` or `res/sK.webp`.
+
+### VectorDrawable icons
+
+Some APKs contain no raster launcher icon at all and use a binary Android `VectorDrawable` XML resource as the complete icon.
+
+The maintained fork can parse supported `<vector>` resources and convert them to a standalone SVG Data URI. Supported drawing features include:
+
+- vector width / height / viewport
+- `<path>` `pathData`
+- fill colors and alpha
+- stroke colors, width, alpha, caps, joins and miter limit
+- `fillType`
+- nested `<group>` transforms
+- basic `<clip-path>` handling
+- directly encoded colors and simple color resource references
+
+A successfully converted vector is preferred over a raster fallback because it remains sharp at arbitrary display sizes.
+
+For correctness, the converter falls back instead of returning a partially rendered icon when it encounters unsupported path features such as trimmed paths or inline complex-color/gradient children.
+
 ### Adaptive icons
 
 Modern Android launcher icons may resolve to XML resources rather than directly to a raster image. The maintained fork avoids labeling XML bytes as `image/png` and improves raster fallback selection.
 
+Full Adaptive Icon foreground/background composition is separate from VectorDrawable conversion and is not yet treated as a complete rasterization engine.
+
 ### Raster icon selection
 
-The icon selector prefers useful higher-density raster resources and recognizes common image formats including:
+The icon selector recognizes common image formats including:
 
 - PNG
 - WebP
 - JPEG
+- GIF
+
+Intrinsic dimensions are read from the image headers without decoding or recompressing the image.
 
 ## Browser ZIP Worker cleanup
 
