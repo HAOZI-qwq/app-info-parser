@@ -59,7 +59,7 @@ jobs:
           if git diff --cached --quiet; then
             echo 'dist is already up to date.'
           else
-            git commit -m 'build: update browser dist'
+            git commit -m 'build: update browser dist / 更新浏览器构建产物'
             git pull --rebase origin master
             git push
           fi
