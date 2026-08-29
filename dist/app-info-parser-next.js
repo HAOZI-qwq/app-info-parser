@@ -930,10 +930,10 @@ function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" 
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 var ApkParser = _dereq_('./apk');
 var IpaParser = _dereq_('./ipa');
-var supportFileTypes = ['ipa', 'apk'];
+var supportFileTypes = ['ipa', 'apk', 'zip'];
 var AppInfoParser = /*#__PURE__*/function () {
   /**
-   * parser for parsing .ipa or .apk file
+   * parser for parsing .ipa/.apk or a zipped .app bundle
    * @param {String | File | Blob} file // file's path in Node, instance of File or Blob in Browser
    */
   function AppInfoParser(file) {
@@ -944,11 +944,12 @@ var AppInfoParser = /*#__PURE__*/function () {
     var splits = (file.name || file).split('.');
     var fileType = splits[splits.length - 1].toLowerCase();
     if (!supportFileTypes.includes(fileType)) {
-      throw new Error('Unsupported file type, only support .ipa or .apk file.');
+      throw new Error('Unsupported file type, only support .ipa, .apk or zipped .app (.zip) file.');
     }
     this.file = file;
     switch (fileType) {
       case 'ipa':
+      case 'zip':
         this.parser = new IpaParser(this.file);
         break;
       case 'apk':
@@ -993,14 +994,17 @@ var _require = _dereq_('./utils'),
   findIpaIconPath = _require.findIpaIconPath,
   getBase64FromBuffer = _require.getBase64FromBuffer,
   detectImageMimeType = _require.detectImageMimeType;
-var PlistName = new RegExp('payload/[^/]+?.app/info.plist$', 'i');
-var ProvisionName = /payload\/.+?\.app\/embedded\.mobileprovision/;
+
+// Support both normal IPA layout (Payload/Foo.app/...) and a directly zipped
+// simulator/device .app bundle (Foo.app/...).
+var PlistName = /^(?:payload\/)?[^/]+\.app\/info\.plist$/i;
+var ProvisionName = /^(?:payload\/)?[^/]+\.app\/embedded\.mobileprovision$/i;
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 var IpaParser = /*#__PURE__*/function (_Zip) {
   /**
-   * parser for parsing .ipa file
+   * parser for parsing .ipa file or a zipped .app bundle
    * @param {String | File | Blob} file // file's path in Node, instance of File or Blob in Browser
    */
   function IpaParser(file) {
