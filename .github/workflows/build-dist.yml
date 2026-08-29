@@ -63,3 +63,24 @@ jobs:
             git pull --rebase origin master
             git push
           fi
+
+  node-handle-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Verify ZIP handles are released
+        run: node test/node-unzip.test.js
+
+      - name: Verify compressed app parsing
+        run: node test/compressed-app.test.js
