@@ -1,36 +1,36 @@
-# Changelog
+# Changelog / 更新日志
 
-All notable changes to this project will be documented in this file.
+All notable changes to this project will be documented in this file / 本文件记录项目的重要版本变更
 
 ## 1.2.0 (2026-08-29)
 
-### Android icons
+### Android icons / Android 图标
 
-- Add Android Adaptive Icon parsing for `background`, `foreground` and `monochrome` layers.
-- Compose Adaptive Icon background and foreground layers into a browser-renderable SVG Data URI while keeping `icon` as a string.
-- Expose resolved Adaptive Icon layers through the additive `adaptiveIcons` field.
+- Add Android Adaptive Icon parsing for `background`, `foreground` and `monochrome` layers / 新增 Android Adaptive Icon 解析，支持 `background`、`foreground` 和 `monochrome` 图层
+- Compose Adaptive Icon background and foreground layers into a browser-renderable SVG Data URI while keeping `icon` as a string / 支持将 Adaptive Icon 背景与前景合成为浏览器可直接显示的 SVG Data URI，同时保持 `icon` 为字符串类型
+- Expose resolved Adaptive Icon layers through the additive `adaptiveIcons` field / 新增 `adaptiveIcons` 字段，可分别获取解析后的 Adaptive Icon 各图层
 
-### Android metadata
+### Android metadata / Android 元数据
 
-- Add APK native ABI detection from `lib/<abi>/*.so` without decompressing native libraries.
-- Add `resourceConfigs` with parsed `ResTable_config` locale, density, SDK and device-configuration metadata.
-- Keep the existing resource map representation unchanged for compatibility.
+- Add APK native ABI detection from `lib/<abi>/*.so` without decompressing native libraries / 新增 APK 原生 ABI 架构识别，通过 `lib/<abi>/*.so` 判断且无需解压原生库
+- Add `resourceConfigs` with parsed `ResTable_config` locale, density, SDK and device-configuration metadata / 新增 `resourceConfigs`，解析 `ResTable_config` 中的语言地区、密度、SDK 及设备配置等元数据
+- Keep the existing resource map representation unchanged for compatibility / 保持原有 resource map 数据结构不变，避免破坏现有兼容性
 
-### ZIP lifecycle
+### ZIP lifecycle / ZIP 生命周期
 
-- Replace the Node-side unzip adapter with a managed `yauzl` implementation that explicitly closes ZIP file descriptors before reads resolve.
-- Fix APK/IPA files remaining locked on Windows after `parse()` completes.
-- Add Windows CI coverage for immediate rename/delete after ZIP reads.
+- Replace the Node-side unzip adapter with a managed `yauzl` implementation that explicitly closes ZIP file descriptors before reads resolve / 重写 Node.js ZIP 读取层，使用受控的 `yauzl` 实现，在读取完成前主动关闭 ZIP 文件描述符
+- Fix APK/IPA files remaining locked on Windows after `parse()` completes / 修复 Windows 下 `parse()` 完成后 APK/IPA 文件仍被占用的问题
+- Add Windows CI coverage for immediate rename/delete after ZIP reads / 新增 Windows CI 测试，验证 ZIP 读取后可立即重命名和删除文件
 
 ### iOS
 
-- Add support for directly zipped `.app` bundles in addition to normal IPA `Payload/*.app` layout.
-- Keep IPA CgBI and normal image fallback behavior unchanged.
+- Add support for directly zipped `.app` bundles in addition to normal IPA `Payload/*.app` layout / 除标准 IPA 的 `Payload/*.app` 结构外，新增直接压缩 `.app` Bundle 的解析支持
+- Keep IPA CgBI and normal image fallback behavior unchanged / 保持 IPA CgBI 图标转换及普通图片回退逻辑不变
 
-### Types and tests
+### Types and tests / 类型与测试
 
-- Expand TypeScript definitions for browser inputs, icons, Adaptive Icon layers, ABIs, resource configs and iOS fields.
-- Add regression tests for Adaptive Icons, ABIs, `ResTable_config`, Node file-handle release and compressed `.app` parsing.
+- Expand TypeScript definitions for browser inputs, icons, Adaptive Icon layers, ABIs, resource configs and iOS fields / 完善 TypeScript 类型定义，覆盖浏览器输入、图标、Adaptive Icon 图层、ABI、资源配置及 iOS 字段
+- Add regression tests for Adaptive Icons, ABIs, `ResTable_config`, Node file-handle release and compressed `.app` parsing / 新增 Adaptive Icon、ABI、`ResTable_config`、Node 文件句柄释放及压缩 `.app` 解析的回归测试
 
 ---
 
