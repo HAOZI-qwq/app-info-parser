@@ -1,6 +1,6 @@
 {
   "name": "app-info-parser-next",
-  "version": "1.1.7-fixed.1",
+  "version": "1.1.8",
   "description": "Maintained fork of app-info-parser with modern APK/IPA parsing fixes.",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
